@@ -71,11 +71,13 @@ app.get("/download/:id", async (req, res) => {
       return res.status(upstream.status).send("Dokument nicht gefunden oder nicht zugänglich");
     }
 
-    // Content-Type und Content-Disposition vom Upstream übernehmen
-    const contentType = upstream.headers.get("content-type") || "application/octet-stream";
-    const disposition = upstream.headers.get("content-disposition") || "attachment";
+    // Content-Type vom Upstream übernehmen, Disposition auf inline setzen damit
+    // der Browser PDFs direkt anzeigt statt sie herunterzuladen
+    const contentType = upstream.headers.get("content-type") || "application/pdf";
+    const disposition = (upstream.headers.get("content-disposition") || "")
+      .replace(/^attachment/, "inline");
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Disposition", disposition);
+    res.setHeader("Content-Disposition", disposition || "inline");
 
     upstream.body.pipe(res);
   } catch (err) {
